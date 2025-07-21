@@ -16,6 +16,16 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get notification count
+router.get('/counts', authenticateToken, async (req, res) => {
+  try {
+    const count = await Notification.count();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get notification count', message: error.message });
+  }
+});
+
 // Set/update the notification (admin only, replaces previous)
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {

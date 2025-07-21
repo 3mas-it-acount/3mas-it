@@ -38,7 +38,7 @@ const errandsRouter = require('./routes/errands');
 const mysqldump = require('mysqldump');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // --- CORS configuration (must be first!) ---
 app.use(cors({
@@ -83,6 +83,9 @@ app.use('/api/uploads', (req, res, next) => {
   res.set('Cache-Control', 'public, max-age=31536000, immutable');
   next();
 }, express.static(path.join(__dirname, 'uploads')));
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Redis client setup (DISABLED for development)
 // const redisClient = createClient({
@@ -142,7 +145,13 @@ app.get('/api/online-user-list', (req, res) => {
   res.json({ users: onlineUserDetails });
 });
 
-// Error handling middleware
+// The "catchall" handler: for any request that doesn't
+// match one of the API routes, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Error handling middleware (should be last)
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   
@@ -163,14 +172,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'API endpoint not found'
   });
 });
 
