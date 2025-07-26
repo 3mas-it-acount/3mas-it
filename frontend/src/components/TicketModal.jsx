@@ -91,8 +91,8 @@ const TicketModal = ({ isOpen, onClose, onSubmit, ticket = null, isLoading = fal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40 dark:bg-opacity-60">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-800 w-full max-w-2xl transition-colors duration-300">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40 dark:bg-opacity-60  overflow-y-auto ">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-800 w-full max-w-2xl transition-colors duration-300  overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 id="ticket-modal-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? 'Edit Ticket' : 'Create New Ticket'}
@@ -102,7 +102,7 @@ const TicketModal = ({ isOpen, onClose, onSubmit, ticket = null, isLoading = fal
             className="text-gray-400 hover:text-gray-600 focus:outline-none"
             aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6 " />
           </button>
         </div>
 
@@ -188,10 +188,10 @@ const TicketModal = ({ isOpen, onClose, onSubmit, ticket = null, isLoading = fal
           {/* Attachment List */}
           {attachments.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Attached Files</h4>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-200 mb-2">Attached Files</h4>
               <div className="space-y-2">
                 {attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border border-gray-200 rounded-md">
+                  <div key={index} className="flex items-center justify-between p-2 border border-gray-200 rounded-md ">
                     <div className="flex items-center">
                       <FileIcon className="w-4 h-4 text-gray-400 mr-2" />
                       <span className="text-sm text-gray-900">

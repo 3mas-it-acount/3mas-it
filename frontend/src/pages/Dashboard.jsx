@@ -15,6 +15,7 @@ import { useSocket } from '../App';
 const Dashboard = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  // console.log('Rendering Dashboard for user:', user);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('activities'); // 'todo' or 'activities'
   const [stats, setStats] = useState({
@@ -131,11 +132,12 @@ const Dashboard = () => {
       }
       // Fetch initial online user count from backend
       try {
-        const res = await fetch('/api/online-users');
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const res = await fetch(`${apiUrl}/api/online-users`);
         const data = await res.json();
         setStats(s => ({ ...s, onlineUsers: data.online }));
         // Fetch initial online user list
-        const res2 = await fetch('/api/online-user-list');
+        const res2 = await fetch(`${apiUrl}/api/online-user-list`);
         const data2 = await res2.json();
         setOnlineUserList(data2.users || []);
       } catch (err) {
@@ -178,7 +180,7 @@ const Dashboard = () => {
       loadSharedTasks();
       usersAPI.getUsers({ page: 1, limit: 1000 }).then(res => {
         setSharedTaskUsers(res.users || []);
-        console.log('Shared task users:', res.users);
+        // console.log('Shared task users:', res.users);
       });
     }
   }, [user?.id]);
@@ -651,40 +653,34 @@ const Dashboard = () => {
       </div>
 
       {/* Notification Bar */}
-      {(notification && notification.text) || user?.role === 'admin' ? (
+      {user?.role === 'admin' && (
         <div className="card shadow-xl border border-red-500 mb-4 bg-red-50 rounded-xl">
           <div className="flex items-center justify-between p-3">
             <div className="flex-1">
-              {user?.role === 'admin' ? (
-                <input
-                  type="text"
-                  value={notificationInput}
-                  onChange={e => setNotificationInput(e.target.value)}
-                  placeholder={t('Add a notification for all users...')}
-                  className="form-input w-full border-red-300 bg-red-100 text-red-900 placeholder-red-400 rounded-lg"
-                  disabled={notificationLoading}
-                />
-              ) : (
-                <span className="text-red-700 font-semibold">{notification?.text}</span>
-              )}
+              <input
+                type="text"
+                value={notificationInput}
+                onChange={e => setNotificationInput(e.target.value)}
+                placeholder={t('Add a notification for all users...')}
+                className="form-input w-full border-red-300 bg-red-100 text-red-900 placeholder-red-400 rounded-lg"
+                disabled={notificationLoading}
+              />
             </div>
-            {user?.role === 'admin' && (
-              <div className="flex gap-2 ml-2">
-                <button
-                  className="btn-primary btn-sm rounded-lg"
-                  onClick={handleSaveNotification}
-                  disabled={notificationLoading || !notificationInput.trim()}
-                >{t('Save')}</button>
-                <button
-                  className="btn-secondary btn-sm rounded-lg"
-                  onClick={handleClearNotification}
-                  disabled={notificationLoading || !notification?.text}
-                >{t('Clear')}</button>
-              </div>
-            )}
+            <div className="flex gap-2 ml-2">
+              <button
+                className="btn-primary btn-sm rounded-lg"
+                onClick={handleSaveNotification}
+                disabled={notificationLoading || !notificationInput.trim()}
+              >{t('Save')}</button>
+              <button
+                className="btn-secondary btn-sm rounded-lg"
+                onClick={handleClearNotification}
+                disabled={notificationLoading || !notification?.text}
+              >{t('Clear')}</button>
+            </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       {/* Shared Tasks (Admin) */}
       {user?.role === 'admin' && (

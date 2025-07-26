@@ -19,6 +19,14 @@ const DeviceIcon = Monitor;
 const DeviceInfoModal = ({ isOpen, onClose, device }) => {
   const { t } = useTranslation();
   if (!isOpen || !device) return null;
+  let deviceObj = device;
+  if (typeof device === 'string') {
+    try {
+      deviceObj = JSON.parse(device);
+    } catch (e) {
+      deviceObj = {};
+    }
+  }
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen p-4">
@@ -35,21 +43,21 @@ const DeviceInfoModal = ({ isOpen, onClose, device }) => {
             </div>
             <button onClick={onClose} className="ml-auto text-white text-2xl hover:text-blue-200 focus:outline-none">×</button>
           </div>
-          {/* Device Details */}
-          <div className="p-6 space-y-3 text-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-              {device.snNum && <div><span className="font-semibold text-gray-700">{t('SN')}:</span> <span className="text-gray-900">{device.snNum}</span></div>}
-              {device.deviceBrand && <div><span className="font-semibold text-gray-700">{t('Brand')}:</span> <span className="text-gray-900">{device.deviceBrand}</span></div>}
-              {device.hard && <div><span className="font-semibold text-gray-700">{t('Hard')}:</span> <span className="text-gray-900">{device.hard}</span></div>}
-              {device.ram && <div><span className="font-semibold text-gray-700">{t('RAM')}:</span> <span className="text-gray-900">{device.ram}</span></div>}
-              {device.processor && <div><span className="font-semibold text-gray-700">{t('CPU')}:</span> <span className="text-gray-900">{device.processor}</span></div>}
-              {device.deviceType && <div><span className="font-semibold text-gray-700">{t('Type')}:</span> <span className="text-gray-900">{device.deviceType}</span></div>}
-              {device.macIp && <div><span className="font-semibold text-gray-700">{t('MAC/IP')}:</span> <span className="text-gray-900">{device.macIp}</span></div>}
-              {device.deviceUser && <div><span className="font-semibold text-gray-700">{t('User')}:</span> <span className="text-gray-900">{device.deviceUser}</span></div>}
-              {device.devicePass && <div><span className="font-semibold text-gray-700">{t('Pass')}:</span> <span className="text-gray-900">{device.devicePass}</span></div>}
-              {device.deviceHost && <div><span className="font-semibold text-gray-700">{t('Host')}:</span> <span className="text-gray-900">{device.deviceHost}</span></div>}
-              {device.anydeskNum && <div><span className="font-semibold text-gray-700">{t('Anydesk#')}:</span> <span className="text-gray-900">{device.anydeskNum}</span></div>}
-              {device.anydeskPass && <div><span className="font-semibold text-gray-700">{t('Anydesk Pass')}:</span> <span className="text-gray-900">{device.anydeskPass}</span></div>}
+          {/* Device Details - improved appearance */}
+          <div className="p-6">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                {Object.entries(deviceObj).map(([key, value]) => (
+                  value ? (
+                    <div key={key} className="flex flex-col gap-1">
+                      <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t(key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()))}</dt>
+                      <dd className="text-base text-gray-900 select-text break-all bg-white rounded px-2 py-1 border border-gray-100 shadow-sm">
+                        {value}
+                      </dd>
+                    </div>
+                  ) : null
+                ))}
+              </dl>
             </div>
           </div>
         </div>
@@ -285,7 +293,11 @@ const Employees = () => {
                   {employee.device ? (
                     <button
                       className="text-blue-500 hover:underline"
-                      onClick={() => { setDeviceToView(employee.device); setDeviceModalOpen(true); }}
+                      onClick={() => {
+                        console.log('Device data:', employee.device);
+                        setDeviceToView(employee.device);
+                        setDeviceModalOpen(true);
+                      }}
                     >
                       {t('View Device')}
                     </button>

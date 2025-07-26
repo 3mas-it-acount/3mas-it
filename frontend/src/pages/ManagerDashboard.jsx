@@ -14,6 +14,7 @@ import { useQueryClient } from 'react-query';
 const ManagerDashboard = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  console.log('Rendering ManagerDashboard for user:', user);
   const [permissionRequests, setPermissionRequests] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [showEmployees, setShowEmployees] = useState(false);
@@ -467,6 +468,50 @@ const ManagerDashboard = () => {
     socket.on('entityUpdated', handler);
     return () => {
       socket.off('entityUpdated', handler);
+    };
+  }, [socket, queryClient]);
+
+  useEffect(() => {
+    if (!socket) return;
+    // Real-time updates for errand requests (already present)
+    const errandHandler = (payload) => {
+      if (payload.type === 'errand') {
+        queryClient.invalidateQueries(['errandRequests']);
+      }
+    };
+    socket.on('entityUpdated', errandHandler);
+    // Real-time updates for users
+    const userRefetch = () => queryClient.invalidateQueries(['users']);
+    socket.on('userCreated', userRefetch);
+    socket.on('userUpdated', userRefetch);
+    socket.on('userDeleted', userRefetch);
+    // Real-time updates for employees
+    const employeeRefetch = () => queryClient.invalidateQueries(['employees']);
+    socket.on('employeeCreated', employeeRefetch);
+    socket.on('employeeUpdated', employeeRefetch);
+    socket.on('employeeDeleted', employeeRefetch);
+    // Real-time updates for permissions
+    const permissionRefetch = () => queryClient.invalidateQueries(['permissions']);
+    socket.on('permissionCreated', permissionRefetch);
+    socket.on('permissionUpdated', permissionRefetch);
+    // Real-time updates for tickets
+    const ticketRefetch = () => queryClient.invalidateQueries(['tickets']);
+    socket.on('ticketCreated', ticketRefetch);
+    socket.on('ticketUpdated', ticketRefetch);
+    socket.on('ticketDeleted', ticketRefetch);
+    return () => {
+      socket.off('entityUpdated', errandHandler);
+      socket.off('userCreated', userRefetch);
+      socket.off('userUpdated', userRefetch);
+      socket.off('userDeleted', userRefetch);
+      socket.off('employeeCreated', employeeRefetch);
+      socket.off('employeeUpdated', employeeRefetch);
+      socket.off('employeeDeleted', employeeRefetch);
+      socket.off('permissionCreated', permissionRefetch);
+      socket.off('permissionUpdated', permissionRefetch);
+      socket.off('ticketCreated', ticketRefetch);
+      socket.off('ticketUpdated', ticketRefetch);
+      socket.off('ticketDeleted', ticketRefetch);
     };
   }, [socket, queryClient]);
 

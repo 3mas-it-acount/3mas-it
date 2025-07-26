@@ -16,7 +16,8 @@ import { useAuth } from '../hooks/useAuth';
 
 const Tickets = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, notification } = useAuth();
+  console.log('Rendering Tickets for user:', user);
   const navigate = useNavigate();
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -147,16 +148,25 @@ const Tickets = () => {
 
   useEffect(() => {
     if (!socket) return;
+
+    // Ensure token is passed correctly during WebSocket connection
+    const token = user?.token; // Assuming user object contains the token
+    if (token) {
+      socket.auth = { token };
+      socket.connect();
+    }
+
     const refetch = () => queryClient.invalidateQueries(['tickets']);
     socket.on('ticketCreated', refetch);
     socket.on('ticketUpdated', refetch);
     socket.on('ticketDeleted', refetch);
+
     return () => {
       socket.off('ticketCreated', refetch);
       socket.off('ticketUpdated', refetch);
       socket.off('ticketDeleted', refetch);
     };
-  }, [socket, queryClient]);
+  }, [socket, queryClient, user]);
 
   useEffect(() => {
     if (!socket) return;
@@ -349,6 +359,15 @@ const Tickets = () => {
         </div>
       </div>
 
+      {/* Notification Bar for User Role */}
+      {user?.role === 'user' && notification?.text && (
+        <div className="card shadow-xl border border-red-500 dark:border-blue-700 mb-4 bg-red-50 rounded-xl dark:bg-red-400">
+          <div className="flex items-center justify-between p-3">
+            <span className="text-red-700 dark:text-blue-700 font-semibold">{notification?.text}</span>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="card p-4 sm:p-6 shadow flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-100 mb-4">
           <div className="flex-1 relative">
@@ -411,7 +430,7 @@ const Tickets = () => {
               {ticketsData?.tickets?.map((ticket, idx) => (
                 <tr
                   key={ticket.id}
-                  className={`${idx % 2 === 0 ? 'bg-gray' : 'bg-gray'} hover:bg-blue-50 transition ${isErrandRequest(ticket) ? 'border-l-4 border-green-500' : ''}`}
+                  className={`${idx % 2 === 0 ? 'bg-gray' : 'bg-gray'} hover:bg-blue-500 transition ${isErrandRequest(ticket) ? 'border-l-4 border-green-500' : ''}`}
                   style={{ cursor: 'pointer' }}
                   onClick={e => {
                     // Prevent row click if clicking on an action button
@@ -556,7 +575,7 @@ const Tickets = () => {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                   {errandRequests?.map((errand, idx) => (
-                    <tr key={errand.id} className={`${idx % 2 === 0 ? 'bg-gray' : 'bg-gray-100 dark:bg-gray-800'} hover:bg-green-50 transition`}>
+                    <tr key={errand.id} className={`${idx % 2 === 0 ? 'bg-gray' : 'bg-gray-100 dark:bg-gray-800'} hover:bg-green-500 transition`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-green-800 dark:text-white">#{errand.id}</div>
                       </td>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { notificationAPI } from '../services/api';
 
 const AuthContext = createContext({});
 
@@ -7,9 +8,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    loadNotification();
   }, []);
 
   const checkAuth = async () => {
@@ -28,6 +34,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('user');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNotification = async () => {
+    try {
+      const notif = await notificationAPI.getNotification();
+      setNotification(notif);
+    } catch (e) {
+      setNotification(null);
     }
   };
 
@@ -65,6 +80,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     checkAuth,
+    notification,
+    loadNotification,
   };
 
   return (

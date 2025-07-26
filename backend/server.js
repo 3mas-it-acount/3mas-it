@@ -139,7 +139,7 @@ app.get('/api/online-users', (req, res) => {
 
 // Endpoint for initial online user list
 app.get('/api/online-user-list', (req, res) => {
-  res.json({ users: onlineUserDetails });
+  res.json({ users: Array.from(onlineUserDetails.values()) });
 });
 
 // Error handling middleware
@@ -205,7 +205,7 @@ const io = new Server(server, {
 app.set('io', io);
 
 const onlineUsers = new Set();
-let onlineUserDetails = [];
+const onlineUserDetails = new Map();
 const jwt = require('jsonwebtoken');
 
 io.use((socket, next) => {
@@ -225,28 +225,32 @@ io.use((socket, next) => {
 
 io.on('connection', async (socket) => {
   if (socket.userId) {
+    console.log('User connected:', socket.userId);
     onlineUsers.add(socket.userId);
-    // Add user details if not already present
-    if (!onlineUserDetails.some(u => u.id === socket.userId)) {
-      try {
-        const user = await User.findByPk(socket.userId, { attributes: ['id', 'firstName', 'lastName', 'email'] });
-        if (user) {
-          onlineUserDetails.push(user.toJSON());
-        }
-      } catch (e) {}
-    }
+    // Add or update user details
+    try {
+      const user = await User.findByPk(socket.userId, { attributes: ['id', 'firstName', 'lastName', 'email', 'role'] });
+      if (user) {
+        onlineUserDetails.set(socket.userId, user.toJSON());
+      }
+    } catch (e) {}
     io.emit('onlineUserCount', onlineUsers.size);
-    io.emit('onlineUserList', onlineUserDetails);
+    const onlineList = Array.from(onlineUserDetails.values());
+    io.emit('onlineUserList', onlineList);
+    console.log('Online users after connect:', onlineList);
   }
   socket.on('disconnect', () => {
     if (socket.userId) {
+      console.log('User disconnected:', socket.userId);
       onlineUsers.delete(socket.userId);
       // Remove user details if no more sockets for this user
       if (![...io.sockets.sockets.values()].some(s => s.userId === socket.userId)) {
-        onlineUserDetails = onlineUserDetails.filter(u => u.id !== socket.userId);
+        onlineUserDetails.delete(socket.userId);
       }
       io.emit('onlineUserCount', onlineUsers.size);
-      io.emit('onlineUserList', onlineUserDetails);
+      const onlineList = Array.from(onlineUserDetails.values());
+      io.emit('onlineUserList', onlineList);
+      console.log('Online users after disconnect:', onlineList);
     }
   });
 });
@@ -270,29 +274,28 @@ cron.schedule('0 0 * * *', async () => {
 
 
 
-
-// cron.schedule('0 2 * * *', async () => {
-//   const backupDir = path.join(__dirname, '../database_backups');
-//   if (!fs.existsSync(backupDir)) {
-//     fs.mkdirSync(backupDir, { recursive: true });
-//   }
-//   const dateStr = new Date().toISOString().slice(0,10);
-//   const backupPath = path.join(backupDir, `backup_${dateStr}.sql`);
-//   try {
-//     await mysqldump({
-//       connection: {
-//         host: 'localhost',
-//         user: 'it_user',
-//         password: 'yourpassword',
-//         database: 'it_support',
-//       },
-//       dumpToFile: backupPath,
-//     });
-//     console.log(`[BACKUP] Database backup created at ${backupPath}`);
-//   } catch (error) {
-//     console.error('[BACKUP] Error:', error);
-//   }
-// });
+cron.schedule('* * * * *', async () => {
+  const backupDir = path.join(__dirname, '../database_backups');
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true });
+  }
+  const dateStr = new Date().toISOString().slice(0,10);
+  const backupPath = path.join(backupDir, `backup_${dateStr}.sql`);
+  try {
+    await mysqldump({ 
+      connection: {
+        host: 'localhost',
+        user: 'it_user',
+        password: '3masadmin',
+        database: 'it_support',
+      },
+      dumpToFile: backupPath,
+    });
+    console.log(`[BACKUP] Database backup created at ${backupPath}`);
+  } catch (error) {
+    console.error('[BACKUP] Error:', error);
+  }
+});
 
 
 
@@ -326,7 +329,7 @@ async function startServer() {
     logger.info('Database connection established successfully.');
     
     // Sync database models
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     logger.info('Database models synchronized.');
     
     // Create default admin user if it doesn't exist

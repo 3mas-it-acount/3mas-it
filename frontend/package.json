@@ -2,12 +2,16 @@
   "name": "it-support-frontend",
   "version": "1.0.0",
   "description": "IT Support Web Application Frontend",
+  "author": "3mas",
   "type": "module",
   "homepage": ".",
+  "main": "electron-main.cjs",
   "dependencies": {
     "autoprefixer": "^10.4.14",
     "axios": "^1.3.4",
     "clsx": "^1.2.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "electron-updater": "^6.6.2",
     "html-react-parser": "^5.2.5",
     "i18next": "^25.3.0",
     "lucide-react": "^0.321.0",
@@ -26,9 +30,18 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-deb": "^7.8.1",
+    "@electron-forge/maker-rpm": "^7.8.1",
+    "@electron-forge/maker-squirrel": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
+    "@electron-forge/plugin-fuses": "^7.8.1",
+    "@electron/fuses": "^1.8.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",
     "@vitejs/plugin-react": "^3.1.0",
+    "electron": "^37.2.4",
     "eslint": "^8.36.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -36,8 +49,12 @@
     "vite": "^4.1.4"
   },
   "scripts": {
-    "dev": "vite --host --port 3002",
-    "build": "vite build",
+    "dev": "vite",
+    "electron": "electron electron-main.cjs",
+    "build-frontend": "vite build",
+    "start": "electron-forge start",
+    "make": "electron-forge make",
+    "build": "npm run build-frontend && electron-builder",
     "preview": "vite preview",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
@@ -58,5 +75,42 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "build": {
+    "appId": "com.yourcompany.itsupport",
+    "productName": "IT Support",
+    "files": [
+      "dist/**",
+      "electron-main.cjs",
+      "assets/**"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "icon": "assets/app-icon.ico",
+      "target": "nsis"
+    }
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "assets/app-icon"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "it_support"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "win32"
+          ]
+        }
+      ]
+    }
   }
 }

@@ -7,6 +7,7 @@ import InlineImage from '../components/InlineImage';
 import parse, { domToReact } from 'html-react-parser';
 import { useTheme } from '../components/ThemeProvider';
 import { useTranslation } from 'react-i18next';
+import { useSocket } from '../App';
 
 // Helper to rewrite cid: URLs in HTML to use InlineImage component
 function renderEmailHtmlWithInlineImages(html, accountId, seqno) {
@@ -112,6 +113,7 @@ const Email = () => {
   const [folders, setFolders] = useState(FOLDERS);
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [foldersError, setFoldersError] = useState(null);
+  const socket = useSocket();
 
   // Fetch email configs
   const { data: emailConfigs = [], isLoading: isLoadingAccounts } = useQuery('emailConfigs', () => emailAPI.getEmailConfigs().then(res => res.data));
@@ -617,19 +619,28 @@ const Email = () => {
     sendEmailMutation.mutate(formData);
   };
 
+  useEffect(() => {
+    if (!socket) return;
+    const emailRefetch = () => queryClient.invalidateQueries(['emails']);
+    socket.on('emailReceived', emailRefetch);
+    return () => {
+      socket.off('emailReceived', emailRefetch);
+    };
+  }, [socket, queryClient]);
+
   return (
       
       <div className={`flex flex-col xl:flex-row h-[80vh] bg-white/80 rounded-2xl shadow-2xl overflow-hidden relative mt-8 mx-auto max-w-7xl ${theme === 'dark' ? 'bg-gray-800/90' : ''}`}> 
       {/* Sidebar: Accounts and Folders */}
         <div className={`fixed xl:static z-[100] top-0 left-0 h-full xl:h-auto from-blue-100 to-blue-50 transition-transform duration-200 xl:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:relative w-80 border-b xl:border-b-0 xl:border-r flex flex-col rounded-r-2xl shadow-lg ${theme === 'dark' ? 'bg-gray-900/90' : ''}`}> 
-          <div className="p-6 border-b flex items-center justify-between bg-white/80 dark:bg-gray-700 rounded-t-2xl shadow-sm">
+          <div className="p-6 border-b flex items-center justify-between bg-white/100 dark:bg-gray-700 rounded-t-2xl shadow-sm">
             <span className="font-bold text-lg tracking-wide text-blue-900 dark:text-white">Accounts</span>
             <button className="btn-primary text-xs px-3 py-1 rounded-full shadow hover:bg-blue-600 transition" onClick={() => setShowAdd(true)}>
               <svg className="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               Add
             </button>
         </div>
-          <div className="flex-1 overflow-y-auto min-w-[10rem] xl:min-w-0 px-2 py-4 space-y-2">
+          <div className="flex-1 overflow-y-auto min-w-[10rem] xl:min-w-0 px-2 py-4 bg-white/100 dark:bg-gray-700 space-y-2">
           {isLoadingAccounts ? (
             <div className="p-4 text-gray-500">Loading...</div>
           ) : emailConfigs.length === 0 ? (
@@ -1071,7 +1082,7 @@ const Email = () => {
       {/* Compose Drawer */}
       {showCompose && (
         <div className="fixed inset-0 z-[300] flex items-center justify-end bg-black bg-opacity-40">
-          <div className="bg-white dark:bg-gray-800 rounded-l-lg shadow-2xl p-4 sm:p-8 w-full max-w-[700px] h-[90vh] flex flex-col relative sm:rounded-l-lg sm:h-full">
+          <div className="bg-white dark:bg-gray-800 rounded-l-lg shadow-2xl p-4 sm:p-8 w-full max-w-[700px] h-[90vh] flex flex-col relative sm:rounded-l-lg sm:h-full  overflow-y-auto">
             <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => {
               setShowCompose(false);
               setComposeForm({ to: '', cc: '', bcc: '', subject: '', message: '' });

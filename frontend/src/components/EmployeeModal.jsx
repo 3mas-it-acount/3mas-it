@@ -180,6 +180,8 @@ const EmployeeModal = ({
   }, [isOpen, employee, reset]);
 
   const onSubmitForm = (data) => {
+    if (data.email === '') delete data.email;
+    if (data.emailPass === '') delete data.emailPass;
     onSubmit({ ...data, device });
   };
 
@@ -244,7 +246,6 @@ const EmployeeModal = ({
                 <label className="form-label">Email</label>
                 <input
                   {...register('email', {
-                    required: 'Email is required',
                     pattern: {
                       value: /^\S+@\S+$/i,
                       message: 'Invalid email address',
@@ -261,7 +262,7 @@ const EmployeeModal = ({
               <div>
                 <label className="form-label">Email Password</label>
                 <input
-                  {...register('emailPass', { required: 'Email password is required' })}
+                  {...register('emailPass')}
                   type="text"
                   className="form-input"
                   placeholder="Enter email password"

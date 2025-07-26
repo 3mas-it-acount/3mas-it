@@ -109,9 +109,21 @@ function App() {
   const [socket, setSocket] = useState(null);
   const queryClient = new QueryClient();
   const [showSplash, setShowSplash] = useState(true);
+  // Move AuthProvider up so useAuth is available before socket is created
+  // We'll use a wrapper below
+  let isAuthenticated = false;
+  let isLoading = true;
+  try {
+    // This will be replaced by the AuthProvider wrapper
+    // to avoid breaking the current structure
+    // (the real values will be injected below)
+    ({ isAuthenticated, isLoading } = useAuth());
+  } catch {}
 
   useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
     const token = localStorage.getItem('token');
+    console.log('Socket will use token:', token);
     const s = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000', {
       auth: { token },
       transports: ['websocket'],
@@ -119,7 +131,7 @@ function App() {
     });
     setSocket(s);
     return () => s.disconnect();
-  }, []);
+  }, [isAuthenticated, isLoading]);
 
   useEffect(() => {
     if (!socket) return;
@@ -143,18 +155,19 @@ function App() {
     return <SplashScreen />;
   }
 
+  // Move AuthProvider to wrap the entire app, so useAuth is available for socket and all pages
   return (
-    <SocketContext.Provider value={socket}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
+    <AuthProvider>
+      <SocketContext.Provider value={socket}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
             <div className="min-h-screen bg-gray-50">
               <AppRoutes />
             </div>
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </SocketContext.Provider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SocketContext.Provider>
+    </AuthProvider>
   );
 }
 
