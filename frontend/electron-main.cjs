@@ -1,6 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, session } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+
+// إعدادات الخادم الخلفي
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -10,17 +13,36 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false, // السماح بتحميل الصور من مصادر خارجية
     },
   });
 
   // شغّل نسخة الإنتاج المدمجة
   win.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
+  // إعداد متغيرات البيئة للوصول إلى الخادم الخلفي
+  win.webContents.executeJavaScript(`
+    window.BACKEND_URL = '${BACKEND_URL}';
+    window.IS_ELECTRON = true;
+  `);
+
   // التحقق من وجود تحديثات
   autoUpdater.checkForUpdatesAndNotify();
+
+  // إضافة معالج للأخطاء
+  win.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorDescription);
+  });
 }
 
+// إعداد CORS للسماح بالوصول إلى الخادم الخلفي
 app.whenReady().then(() => {
+  // إعداد session للسماح بالوصول إلى الخادم الخلفي
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    details.requestHeaders['Origin'] = 'file://';
+    callback({ requestHeaders: details.requestHeaders });
+  });
+
   createWindow();
 
   app.on('activate', function () {

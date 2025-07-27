@@ -167,7 +167,9 @@ const TicketDetail = () => {
                         <button
                           type="button"
                           className="text-blue-600 underline hover:text-blue-800 font-medium"
-                          onClick={() => setPreviewImage(`/api/tickets/attachment/${att.id}`)}
+                          onClick={() => setPreviewImage(window.IS_ELECTRON && window.BACKEND_URL ? 
+                            `${window.BACKEND_URL}/api/tickets/attachment/${att.id}` : 
+                            `/api/tickets/attachment/${att.id}`)}
                         >
                           <svg className="w-5 h-5 inline-block mr-1 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v10H4V5zm2 2a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 100 2 1 1 0 000-2zm8-2a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 100 2 1 1 0 000-2z" /></svg>
                           {att.originalName}
@@ -229,14 +231,18 @@ const TicketDetail = () => {
                                     <button
                                       type="button"
                                       className="text-blue-600 underline hover:text-blue-800 font-medium"
-                                      onClick={() => setPreviewImage(`/api/tickets/attachment/${att.id}`)}
+                                      onClick={() => setPreviewImage(window.IS_ELECTRON && window.BACKEND_URL ? 
+                                        `${window.BACKEND_URL}/api/tickets/attachment/${att.id}` : 
+                                        `/api/tickets/attachment/${att.id}`)}
                                     >
                                       <svg className="w-4 h-4 inline-block mr-1 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm0 2h12v10H4V5zm2 2a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 100 2 1 1 0 000-2zm8-2a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 100 2 1 1 0 000-2z" /></svg>
                                       {att.originalName}
                                     </button>
                                   ) : (
                                     <a
-                                      href={`/api/tickets/attachment/${att.id}`}
+                                      href={window.IS_ELECTRON && window.BACKEND_URL ? 
+                                        `${window.BACKEND_URL}/api/tickets/attachment/${att.id}` : 
+                                        `/api/tickets/attachment/${att.id}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-600 underline hover:text-blue-800 font-medium"

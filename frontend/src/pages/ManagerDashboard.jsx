@@ -6,6 +6,7 @@ import { ShieldCheck, FileText, Eye, XCircle, CheckCircle, Clock, Monitor, Loade
 import * as XLSX from 'xlsx';
 import DarkModeToggle from '../components/DarkModeToggle';
 import Tooltip from '../components/Tooltip';
+import InlineImage from '../components/InlineImage';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../App';
 import { useQueryClient } from 'react-query';
@@ -1320,14 +1321,16 @@ const ManagerDashboard = () => {
                 <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="text-gray-600 dark:text-gray-400 mb-2">{t('Attachment:')}</div>
                   {selected.attachment.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                    <img 
+                    <InlineImage 
                       src={`/api/uploads/${selected.attachment}`} 
                       alt="Attachment" 
                       className="rounded-lg border w-full max-h-60 object-contain" 
                     />
                   ) : (
                     <a 
-                      href={`/api/uploads/${selected.attachment}`} 
+                      href={window.IS_ELECTRON && window.BACKEND_URL ? 
+                        `${window.BACKEND_URL}/api/uploads/${selected.attachment}` : 
+                        `/api/uploads/${selected.attachment}`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 transition"

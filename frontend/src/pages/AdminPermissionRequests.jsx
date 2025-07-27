@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import InlineImage from '../components/InlineImage';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -196,16 +197,19 @@ const AdminPermissionRequests = () => {
             <div className="mb-2 text-sm text-gray-600">Requested By: <span className="font-semibold">{selected.requester ? `${selected.requester.firstName} ${selected.requester.lastName}` : '-'}</span></div>
             <div className="mb-2 text-sm text-gray-600">Status: <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${statusColors[selected.status]}`}>{statusIcons[selected.status]}{selected.status}</span></div>
             <div className="mb-2 text-sm text-gray-600">Date: <span className="font-semibold">{new Date(selected.createdAt).toLocaleString()}</span></div>
-            {selected.attachment && (
-              <div className="mb-2">
-                <div className="text-sm text-gray-600 mb-1">Attachment:</div>
-                {selected.attachment.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                  <img src={`/api/uploads/${selected.attachment}`} alt="Attachment" className="rounded-lg border w-full max-h-60 object-contain" />
-                ) : (
-                  <a href={`/api/uploads/${selected.attachment}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download</a>
+                            {selected.attachment && (
+                  <div className="mb-2">
+                    <div className="text-sm text-gray-600 mb-1">Attachment:</div>
+                    {selected.attachment.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                      <InlineImage src={`/api/uploads/${selected.attachment}`} alt="Attachment" className="rounded-lg border w-full max-h-60 object-contain" />
+                    ) : (
+                      <a href={window.IS_ELECTRON && window.BACKEND_URL ? 
+                        `${window.BACKEND_URL}/api/uploads/${selected.attachment}` : 
+                        `/api/uploads/${selected.attachment}`} 
+                        target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download</a>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
           </div>
         </div>
       )}

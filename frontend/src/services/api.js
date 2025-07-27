@@ -1,7 +1,17 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
+// تحديد URL الخادم الخلفي
+const getApiBase = () => {
+  // في Electron، استخدم الخادم الخلفي المحدد
+  if (window.IS_ELECTRON && window.BACKEND_URL) {
+    return `${window.BACKEND_URL}/api`;
+  }
+  // في المتصفح، استخدم المتغير البيئي أو المسار النسبي
+  return import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
+};
+
+const API_BASE = getApiBase();
 
 // Create axios instance
 const api = axios.create({
